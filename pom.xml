@@ -24,13 +24,21 @@
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.xwiki.commons</groupId>
+    <artifactId>xwiki-commons-pom</artifactId>
+    <version>6.4.8</version>
+  </parent>
   <groupId>org.xwiki.contrib</groupId>
   <artifactId>macro-docaccordion</artifactId>
   <version>1.0-SNAPSHOT</version>
   <name>Document Accordion Macro</name>
   <description>Rendering macro for displaying multiple documents as an accordion</description>
   <properties>
-    <rendering.version>3.2</rendering.version>
+    <rendering.version>${commons.version}</rendering.version>
+    <xwiki.jacoco.instructionRatio>0.96</xwiki.jacoco.instructionRatio>
+    <!-- The extension's category -->
+    <xwiki.extension.category>macro</xwiki.extension.category>
   </properties>
   <scm>
     <connection>scm:git:git://github.com/xwiki-contrib/macro-docaccordion.git</connection>
@@ -48,15 +56,6 @@
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-      <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <version>2.7.2</version>
         <configuration>
@@ -68,9 +67,9 @@
     </plugins>
   </build>
   <dependencies>
-    <dependency>
+	<dependency>
       <groupId>org.xwiki.rendering</groupId>
-      <artifactId>xwiki-rendering-syntax-xwiki2</artifactId>
+      <artifactId>xwiki-rendering-api</artifactId>
       <version>${rendering.version}</version>
     </dependency>
     <dependency>
@@ -78,10 +77,34 @@
       <artifactId>xwiki-rendering-transformation-macro</artifactId>
       <version>${rendering.version}</version>
     </dependency>
+    <!-- Query Manager dependency -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-query-manager</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <!-- Oldcore dependency -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
     <!-- Testing dependencies -->
     <dependency>
       <groupId>org.xwiki.rendering</groupId>
       <artifactId>xwiki-rendering-test</artifactId>
+      <version>${rendering.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-xwiki20</artifactId>
+      <version>${rendering.version}</version>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-syntax-event</artifactId>
       <version>${rendering.version}</version>
       <scope>test</scope>
     </dependency>
