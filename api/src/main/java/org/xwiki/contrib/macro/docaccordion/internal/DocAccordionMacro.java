@@ -24,6 +24,7 @@ import javax.inject.Named;
 import javax.inject.Provider;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ import com.xpn.xwiki.doc.XWikiDocument;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroSort;
 import org.xwiki.component.annotation.Component;
+import org.xwiki.localization.LocalizationManager;
+import org.xwiki.localization.Translation;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.DocumentReferenceResolver;
@@ -94,6 +97,13 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
     @Inject
     private ContextualAuthorizationManager authorizationManager;
+
+    @Inject
+    @Named("local")
+    private EntityReferenceSerializer<String> localSerializer;
+
+    @Inject
+    private LocalizationManager localization;
 
     /**
      * Create and initialize the descriptor of the macro.
@@ -186,10 +196,10 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         // Generate the query
         StringBuilder xwql = new StringBuilder(String.format("FROM doc.object(%s) AS sourceObj", sourceXClass));
-        xwql.append(" WHERE");
 
         // Filter by space
         if (!StringUtils.isBlank(sourceSpace)) {
+            xwql.append(" WHERE");
             xwql.append(" doc.space=:space");
         }
 
@@ -265,7 +275,11 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                 // Accordion item Panel heading
                 Map<String, String> accordionItemPanelHeadingParams = new HashMap<>();
                 String accordionItemIdSuffix = RandomStringUtils.random(6, true, true);
-                accordionItemPanelHeadingParams.put("class", "panel-heading");
+                String cssClasses = "";
+                if (parameters.getOpenFirstAccordion() && i == 0) {
+                    cssClasses = "openFirstAccordion";
+                }
+                accordionItemPanelHeadingParams.put("class", String.format("panel-heading %s", cssClasses));
                 accordionItemPanelHeadingParams.put("id", String.format("accordionHeading%s", accordionItemIdSuffix));
                 GroupBlock accordionItemPanelHeading =
                     new GroupBlock(new ArrayList<Block>(), accordionItemPanelHeadingParams);
@@ -312,7 +326,59 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                 Map<String, String> accordionItemPanelCollapseBodyParams = new HashMap<>();
                 accordionItemPanelCollapseBodyParams.put("class", "panel-body");
                 GroupBlock accordionItemPanelCollapseBody =
-                    new GroupBlock(Arrays.<Block>asList(new WordBlock(content)), accordionItemPanelCollapseBodyParams);
+                    new GroupBlock(new ArrayList<Block>(), accordionItemPanelCollapseBodyParams);
+
+                // Enclose the accordion content with a div
+                Map<String, String> accordionItemPanelCollapseBodyContentParams = new HashMap<>();
+                accordionItemPanelCollapseBodyContentParams.put("class", "xwiki-accordion-content");
+                GroupBlock accordionItemPanelCollapseBodyContent = new GroupBlock(
+                    Arrays.<Block>asList(new WordBlock(content)), accordionItemPanelCollapseBodyContentParams);
+
+                accordionItemPanelCollapseBody.addChild(accordionItemPanelCollapseBodyContent);
+
+                // Add the footer panel to the accordion content (The footer will contain the author + modification
+                // date)
+                if (parameters.getDisplayAuthor() || parameters.getDisplayDate()) {
+                    String author = "";
+                    if (parameters.getDisplayAuthor()) {
+                        author = xwiki.getUserName(localSerializer.serialize(accordionItemDoc.getAuthorReference()),
+                            "$first_name $last_name", false, xcontext);
+                    }
+
+                    String date = "";
+                    if (parameters.getDisplayDate()) {
+                        date = xwiki.formatDate(accordionItemDoc.getDate(), "dd MMMM yyyy", xcontext);
+                    }
+
+                    // Generate the footer text
+                    Locale locale = contextProvider.get().getLocale();
+                    Translation translation1 =
+                        localization.getTranslation("rendering.macro.docaccordion.footer.modified", locale);
+                    Translation translation2 =
+                        localization.getTranslation("rendering.macro.docaccordion.footer.by", locale);
+                    Translation translation3 =
+                        localization.getTranslation("rendering.macro.docaccordion.footer.on", locale);
+                    String footerContent = "";
+
+                    if (!StringUtils.isBlank(author) && !StringUtils.isBlank(date)) {
+                        footerContent = String.format("%s %s %s, %s %s", translation1.getRawSource().toString(),
+                            translation2.getRawSource().toString(), author, translation3.getRawSource().toString(),
+                            date);
+                    } else if (!StringUtils.isBlank(author)) {
+                        footerContent = String.format("%s %s %s", translation1.getRawSource().toString(),
+                            translation2.getRawSource().toString(), author);
+                    } else {
+                        footerContent = String.format("%s %s %s", translation1.getRawSource().toString(),
+                            translation3.getRawSource().toString(), date);
+                    }
+
+                    Map<String, String> accordionItemPanelCollapseFooterParams = new HashMap<>();
+                    accordionItemPanelCollapseFooterParams.put("class", "text-muted text-right xwiki-accordion-footer");
+                    GroupBlock accordionItemPanelCollapseFooter = new GroupBlock(
+                        Arrays.<Block>asList(new WordBlock(footerContent)), accordionItemPanelCollapseFooterParams);
+
+                    accordionItemPanelCollapseBody.addChild(accordionItemPanelCollapseFooter);
+                }
 
                 accordionItemPanelCollapse.addChild(accordionItemPanelCollapseBody);
 
