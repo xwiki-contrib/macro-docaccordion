@@ -38,7 +38,7 @@ import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
 import com.xpn.xwiki.doc.XWikiDocument;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters;
-import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroSort;
+import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters.DocAccordionMacroSort;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.localization.LocalizationManager;
 import org.xwiki.localization.Translation;
@@ -145,7 +145,9 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                     parameters.getSpace(), sourceXClass, parameters.getSort(), parameters.getLimit(), e);
             }
         } else {
-            result.add(new WordBlock("Bad combination space, xclass"));
+            result.add(new WordBlock(localization
+                .getTranslation("rendering.macro.docaccordion.wrong_parameters", contextProvider.get().getLocale())
+                .getRawSource().toString()));
         }
 
         return result;
@@ -175,7 +177,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
             StringBuilder xwql = new StringBuilder("SELECT awm.class");
             xwql.append(String.format(" FROM Document doc, doc.object(%s) AS awm", AWM_LIVE_TABLE_CLASS));
             xwql.append(" WHERE");
-            xwql.append(" doc.space=:space");
+            xwql.append(" doc.space LIKE :space");
             Query query = queryManager.createQuery(xwql.toString(), Query.XWQL);
             query.bindValue("space", space);
             List<String> results = query.setLimit(1).execute();
@@ -200,7 +202,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         // Filter by space
         if (!StringUtils.isBlank(sourceSpace)) {
             xwql.append(" WHERE");
-            xwql.append(" doc.space=:space");
+            xwql.append(" (doc.space LIKE :space1 OR doc.space LIKE :space2)");
         }
 
         // Sort results
@@ -214,7 +216,9 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         Query query = queryManager.createQuery(xwql.toString(), Query.XWQL);
 
         if (!StringUtils.isBlank(sourceSpace)) {
-            query.bindValue("space", sourceSpace);
+            query.bindValue("space1", sourceSpace);
+            // Note: %% is just to escape a single % in the format string.
+            query.bindValue("space2", String.format("%s.%%", sourceSpace));
         }
 
         results = query.execute();
@@ -301,7 +305,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                     String.format("collapse%s", accordionItemIdSuffix));
                 accordionItemPanelHeadingTitleLinkParams.put("rel", accordionItemDoc.getURL("get", xcontext));
                 ResourceReference ressourceReference =
-                    new ResourceReference(String.format("#collapse%s", accordionItemIdSuffix), ResourceType.URL);
+                    new ResourceReference(String.format("#collapse%s", accordionItemIdSuffix), ResourceType.PATH);
                 LinkBlock accordionItemPanelHeadingTitleLink = new LinkBlock(Arrays.<Block>asList(new WordBlock(title)),
                     ressourceReference, true, accordionItemPanelHeadingTitleLinkParams);
 
@@ -325,6 +329,11 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                 // Accordion item Panel collapse body
                 Map<String, String> accordionItemPanelCollapseBodyParams = new HashMap<>();
                 accordionItemPanelCollapseBodyParams.put("class", "panel-body");
+                // Check if the max. is applied
+                if (parameters.getAccordionMaxHeight() > 0) {
+                    accordionItemPanelCollapseBodyParams.put("style",
+                        String.format("overflow: scroll;max-height: %spx", parameters.getAccordionMaxHeight()));
+                }
                 GroupBlock accordionItemPanelCollapseBody =
                     new GroupBlock(new ArrayList<Block>(), accordionItemPanelCollapseBodyParams);
 

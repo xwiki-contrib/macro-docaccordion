@@ -23,7 +23,6 @@ import org.xwiki.properties.annotation.PropertyDescription;
 import org.xwiki.properties.annotation.PropertyMandatory;
 import org.xwiki.properties.annotation.PropertyName;
 
-import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroSort;
 import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 
@@ -32,6 +31,19 @@ import org.xwiki.model.reference.SpaceReference;
  */
 public class DocAccordionMacroParameters
 {
+    public enum DocAccordionMacroSort
+    {
+        /**
+         * Accordions sorted chronologically.
+         */
+        CHRONO,
+
+        /**
+         * Accordions sorted alphabetically.
+         */
+        ALPHA;
+    }
+
     /**
      * @see {@link #getSpace()}
      */
