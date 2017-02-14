@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
+ *
  * See the NOTICE file distributed with this work for additional
  * information regarding copyright ownership.
  *
@@ -18,6 +19,7 @@
  * License along with this software; if not, write to the Free
  * Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
  * 02110-1301 USA, or see the FSF site: http://www.fsf.org.
+ *
 -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -28,12 +30,11 @@
     <version>6.4.8</version>
   </parent>
   <groupId>org.xwiki.contrib</groupId>
-  <artifactId>macro-docaccordion-parent</artifactId>
-  <version>1.0-SNAPSHOT</version>
-  <packaging>pom</packaging>
-  <name>Document Accordion Macro - Parent POM</name>
+  <artifactId>macro-docaccordion</artifactId>
+  <version>1.0-SNAPSHOT</version>  
+  <name>Document Accordion Macro</name>
   <description>Rendering macro for displaying multiple documents as an accordion</description>
-  <properties>
+    <properties>
     <platform.version>${commons.version}</platform.version>
     <rendering.version>${commons.version}</rendering.version>
   </properties>
@@ -53,24 +54,6 @@
       <name>Mohamed Boussaa</name>
     </developer>
   </developers>
-  <build>
-    <!-- Needed to add support for the XAR packaging -->
-    <extensions>
-      <extension>
-        <groupId>org.xwiki.commons</groupId>
-        <artifactId>xwiki-commons-tool-xar-handlers</artifactId>
-        <version>${commons.version}</version>
-      </extension>
-    </extensions>
-    <plugins>
-      <!-- The XAR packaging uses the XAR plugin and thus we need to define what version to use -->
-      <plugin>
-        <groupId>org.xwiki.commons</groupId>
-        <artifactId>xwiki-commons-tool-xar-plugin</artifactId>
-        <version>${commons.version}</version>
-      </plugin>
-    </plugins>
-  </build>
   <distributionManagement>
     <repository>
       <id>xwiki-staging</id>
@@ -78,8 +61,34 @@
       <url>http://nexus.xwiki.org/nexus/service/local/staging/deploy/maven2/</url>
     </repository>
   </distributionManagement>
-  <modules>
-    <module>api</module>
-    <module>ui</module>
-  </modules>
+  <dependencies>
+	<dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-api</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.xwiki.rendering</groupId>
+      <artifactId>xwiki-rendering-transformation-macro</artifactId>
+      <version>${rendering.version}</version>
+    </dependency>
+    <!-- Query Manager dependency -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-query-manager</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <!-- Oldcore dependency -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-oldcore</artifactId>
+      <version>${commons.version}</version>
+    </dependency>
+    <!-- Skin dependency -->
+    <dependency>
+      <groupId>org.xwiki.platform</groupId>
+      <artifactId>xwiki-platform-skin-skinx</artifactId>
+      <version>6.4.8</version>
+    </dependency>
+  </dependencies>
 </project>

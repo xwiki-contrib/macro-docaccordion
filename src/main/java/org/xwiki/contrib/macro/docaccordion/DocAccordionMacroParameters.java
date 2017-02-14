@@ -41,7 +41,7 @@ public class DocAccordionMacroParameters
         /**
          * Accordions sorted alphabetically.
          */
-        ALPHA;
+        ALPHA
     }
 
     /**

@@ -36,15 +36,19 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.slf4j.Logger;
 import com.xpn.xwiki.XWiki;
 import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
 import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
+import org.xwiki.skinx.SkinExtension;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters.DocAccordionMacroSort;
 import org.xwiki.component.annotation.Component;
 import org.xwiki.localization.LocalizationManager;
 import org.xwiki.localization.Translation;
+import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
-import org.xwiki.model.reference.DocumentReferenceResolver;
+import org.xwiki.model.reference.EntityReferenceResolver;
 import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
 import org.xwiki.model.reference.LocalDocumentReference;
@@ -81,7 +85,13 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
     private static final String AWM_LIVE_TABLE_CLASS = "AppWithinMinutes.LiveTableClass";
 
-    private static final int MAX_ACCORDIONS_TO_DISPLAY = 100;
+    private static final int DEFAULT_ACCORDIONS_TO_DISPLAY = 100;
+
+    private static final int MIN_QUERY_LIMIT = 200;
+
+    private static final int MAX_QUERY_LIMIT = 1000;
+
+    private static final String APPLICATIONS_TRANSLATIONS_PREFIX = "rendering.macro.docaccordion.application.";
 
     @Inject
     private QueryManager queryManager;
@@ -93,7 +103,10 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
     private Provider<XWikiContext> contextProvider;
 
     @Inject
-    private DocumentReferenceResolver<String> resolver;
+    private DocumentReferenceResolver<String> documentReferenceResolver;
+
+    @Inject
+    private EntityReferenceResolver<String> entityReferenceResolver;
 
     @Inject
     private ContextualAuthorizationManager authorizationManager;
@@ -104,6 +117,14 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
     @Inject
     private LocalizationManager localization;
+
+    @Inject
+    @Named("jsrx")
+    private SkinExtension jsrxSkinExtension;
+
+    @Inject
+    @Named("ssrx")
+    private SkinExtension ssrxSkinExtension;
 
     /**
      * Create and initialize the descriptor of the macro.
@@ -123,32 +144,60 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
     {
         List<Block> result = new ArrayList<Block>();
 
-        // Build the query
-        String sourceXClass = null;
+        try {
 
-        if (parameters.getXClass() != null) {
-            sourceXClass = parameters.getXClass();
-        } else {
-            if (parameters.getSpace() != null) {
-                sourceXClass = getSpaceAWMDataXClass(parameters.getSpace());
+            XWikiContext xcontext = contextProvider.get();
+            XWiki xwiki = xcontext.getWiki();
+
+            // Resolve the xclass and space
+            DocumentReference xclassReference = null;
+
+            if (!StringUtils.isBlank(parameters.getXClass())) {
+                // Check if the xclass is an application name and replace it by the its corresponding real data xclass
+                Translation translation = localization.getTranslation(
+                    String.format("%s%s", APPLICATIONS_TRANSLATIONS_PREFIX, parameters.getXClass().toLowerCase()),
+                    contextProvider.get().getLocale());
+                if (translation != null) {
+                    parameters.setXClass(translation.getRawSource().toString());
+                }
+
+                xclassReference = documentReferenceResolver.resolve(parameters.getXClass());
             }
+
+            SpaceReference spaceReference =
+                new SpaceReference(entityReferenceResolver.resolve(parameters.getSpace(), EntityType.SPACE));
+
+            if (xclassReference == null || !xwiki.exists(xclassReference, xcontext)) {
+                xclassReference = getSpaceAWMDataXClass(spaceReference);
+                // Starting from xwiki 8.4.4 AWP data can be added on multiple spaces, to cover this case we will not
+                // filter results by space in the case of AWM documents
+                parameters.setSpace("");
+            }
+
+            if (xclassReference != null) {
+                try {
+                    List<String> accordionsStringReferences =
+                        getAccordions(spaceReference, xclassReference, parameters);
+                    result = generateAccordionBlocks(accordionsStringReferences, parameters, transformationContext);
+                } catch (Exception e) {
+                    throw new MacroExecutionException(String.format(
+                        "An error appears when trying to get accordions for the parameters [space: %s, xclass: %s, sort: %s, limit: %s], reason: %s",
+                        parameters.getSpace(), xclassReference, parameters.getSort(), parameters.getLimit(),
+                        e.getMessage()));
+                }
+            } else {
+                throw new MacroExecutionException(localization
+                    .getTranslation("rendering.macro.docaccordion.wrong_parameters", contextProvider.get().getLocale())
+                    .getRawSource().toString());
+            }
+
+        } catch (XWikiException xe) {
+            throw new MacroExecutionException(xe.getMessage());
         }
 
-        if (!StringUtils.isBlank(sourceXClass)) {
-            try {
-                List<String> accordionsStringReferences =
-                    getAccordions(parameters.getSpace(), sourceXClass, parameters.getSort(), parameters.getLimit());
-                result = generateAccordionBlocks(accordionsStringReferences, parameters, transformationContext);
-            } catch (Exception e) {
-                logger.error(
-                    "An error appears when trying to get accordions for the parameters [space: {}, xclass: {}, sort: {}, limit: {}]",
-                    parameters.getSpace(), sourceXClass, parameters.getSort(), parameters.getLimit(), e);
-            }
-        } else {
-            result.add(new WordBlock(localization
-                .getTranslation("rendering.macro.docaccordion.wrong_parameters", contextProvider.get().getLocale())
-                .getRawSource().toString()));
-        }
+        // Inject JS/CSS helper scripts
+        jsrxSkinExtension.use("docaccordion.js");
+        ssrxSkinExtension.use("docaccordion.css");
 
         return result;
     }
@@ -164,50 +213,49 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
     }
 
     /**
-     * Get the Data XClass of the AWM application installed on a given space
+     * Get the Data XClass reference of the AWM application installed on a given space reference
      * 
-     * @param space
+     * @param spaceReference the space reference
      * @return the AWP Data XClass reference or null if the space does not contains an AWM
      */
-    private String getSpaceAWMDataXClass(String space)
+    private DocumentReference getSpaceAWMDataXClass(SpaceReference spaceReference) throws XWikiException
     {
-        String awmDataXclass = null;
+        DocumentReference awmDataXClassReference = null;
 
-        try {
-            StringBuilder xwql = new StringBuilder("SELECT awm.class");
-            xwql.append(String.format(" FROM Document doc, doc.object(%s) AS awm", AWM_LIVE_TABLE_CLASS));
-            xwql.append(" WHERE");
-            xwql.append(" doc.space LIKE :space");
-            Query query = queryManager.createQuery(xwql.toString(), Query.XWQL);
-            query.bindValue("space", space);
-            List<String> results = query.setLimit(1).execute();
-            if (results.size() > 0) {
-                awmDataXclass = results.get(0);
+        XWikiContext xcontext = contextProvider.get();
+        XWiki xwiki = xcontext.getWiki();
+
+        DocumentReference awmMainPageReference = new DocumentReference("WebHome", spaceReference);
+
+        if (xwiki.exists(awmMainPageReference, xcontext)) {
+            XWikiDocument awmMainDocument = xwiki.getDocument(awmMainPageReference, xcontext);
+            BaseObject awmObj = awmMainDocument.getXObject(documentReferenceResolver.resolve(AWM_LIVE_TABLE_CLASS));
+            if (awmObj != null) {
+                awmDataXClassReference = documentReferenceResolver.resolve(awmObj.getStringValue("class"));
             }
-        } catch (Exception e) {
-            logger.error("An error appears when trying to get the AWP data XClass in the space {}", space, e);
         }
-
-        return awmDataXclass;
+        return awmDataXClassReference;
     }
 
-    private List<String> getAccordions(String sourceSpace, String sourceXClass, DocAccordionMacroSort sort, int limit)
-        throws Exception
+    private List<String> getAccordions(SpaceReference spaceReference, DocumentReference xclassReference,
+        DocAccordionMacroParameters parameters) throws Exception
     {
-        List<String> results = new ArrayList<>();
+        List<String> authorizedResults = new ArrayList<>();
 
         // Generate the query
-        StringBuilder xwql = new StringBuilder(String.format("FROM doc.object(%s) AS sourceObj", sourceXClass));
+        StringBuilder xwql = new StringBuilder(
+            String.format("FROM doc.object(%s) AS sourceObj", localSerializer.serialize(xclassReference)));
 
         // Filter by space
-        if (!StringUtils.isBlank(sourceSpace)) {
+        if (!StringUtils.isBlank(parameters.getSpace())) {
             xwql.append(" WHERE");
-            xwql.append(" (doc.space LIKE :space1 OR doc.space LIKE :space2)");
+            xwql.append(" doc.fullName LIKE :space");
+            xwql.append(" escape '!'");// Added to fix a pitfall on mysql when we have spaces with points '.'
         }
 
         // Sort results
-        String orderBy = " ORDER BY doc.creationDate DESC";
-        if (DocAccordionMacroSort.ALPHA.equals(sort)) {
+        String orderBy = " ORDER BY doc.date DESC";
+        if (DocAccordionMacroSort.ALPHA.equals(parameters.getSort())) {
             orderBy = " ORDER BY doc.title";
         }
 
@@ -215,33 +263,45 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         Query query = queryManager.createQuery(xwql.toString(), Query.XWQL);
 
-        if (!StringUtils.isBlank(sourceSpace)) {
-            query.bindValue("space1", sourceSpace);
-            // Note: %% is just to escape a single % in the format string.
-            query.bindValue("space2", String.format("%s.%%", sourceSpace));
+        if (!StringUtils.isBlank(parameters.getSpace())) {
+            // Added to fix a pitfall on mysql when we have spaces with points '.'
+            String spaceLike = localSerializer.serialize(spaceReference).replaceAll("([%_!])", "!$1").concat(".%");
+            query.bindValue("space", spaceLike);
         }
 
-        results = query.execute();
-
-        // Set limits
-        int queryLimit = MAX_ACCORDIONS_TO_DISPLAY;
-        if (limit < queryLimit) {
-            queryLimit = limit;
+        // Manage the limit parameter
+        int queryLimit = MIN_QUERY_LIMIT;
+        if (parameters.getLimit() > DEFAULT_ACCORDIONS_TO_DISPLAY) {
+            queryLimit = MAX_QUERY_LIMIT;
         }
 
-        List<String> authorizedResults = new ArrayList<>();
+        query.setLimit(queryLimit);
 
-        for (String docFullName : results) {
-            DocumentReference documentReference = resolver.resolve(docFullName);
+        int offset = 0;
+        boolean stop = false;
 
-            if (authorizedResults.size() == queryLimit) {
-                break;
+        do {
+            query.setOffset(offset);
+            List<String> results = query.execute();
+            for (String docFullName : results) {
+                DocumentReference documentReference = documentReferenceResolver.resolve(docFullName);
+
+                if (authorizedResults.size() == parameters.getLimit()) {
+                    break;
+                }
+
+                if (authorizationManager.hasAccess(Right.VIEW, documentReference)) {
+                    authorizedResults.add(docFullName);
+                }
             }
 
-            if (authorizationManager.hasAccess(Right.VIEW, documentReference)) {
-                authorizedResults.add(docFullName);
+            if ((authorizedResults.size() == parameters.getLimit()) || (results.size() < queryLimit)) {
+                stop = true;
             }
-        }
+
+            offset = offset + queryLimit;
+
+        } while (!stop);
 
         return authorizedResults;
     }
@@ -268,7 +328,8 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
             String accordionFullName = accordionsStringReferences.get(i);
 
             try {
-                XWikiDocument accordionItemDoc = xwiki.getDocument(resolver.resolve(accordionFullName), xcontext);
+                XWikiDocument accordionItemDoc =
+                    xwiki.getDocument(documentReferenceResolver.resolve(accordionFullName), xcontext);
                 String title = accordionItemDoc.getRenderedTitle(transformationContext.getSyntax(), xcontext);
 
                 // Accordion item block
@@ -400,6 +461,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                     accordionFullName, e);
             }
         }
+
         result.add(topContainerBlock);
 
         return result;

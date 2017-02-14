@@ -1,0 +1,10 @@
+.xwiki-accordion .spinner {
+  background: url("$doc.getAttachmentURL('ajax-loader.gif')");
+  background-repeat: no-repeat;
+}
+.xwiki-accordion-footer {
+  border-top: 1px solid #ccc;
+  display: none;
+  font-style: italic;   
+  padding-top: 5px;
+}
