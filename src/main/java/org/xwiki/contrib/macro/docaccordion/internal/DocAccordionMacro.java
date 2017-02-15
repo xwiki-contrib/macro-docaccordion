@@ -152,16 +152,16 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
             // Resolve the xclass and space
             DocumentReference xclassReference = null;
 
-            if (!StringUtils.isBlank(parameters.getXClass())) {
+            if (!StringUtils.isBlank(parameters.getXclass())) {
                 // Check if the xclass is an application name and replace it by the its corresponding real data xclass
                 Translation translation = localization.getTranslation(
-                    String.format("%s%s", APPLICATIONS_TRANSLATIONS_PREFIX, parameters.getXClass().toLowerCase()),
+                    String.format("%s%s", APPLICATIONS_TRANSLATIONS_PREFIX, parameters.getXclass().toLowerCase()),
                     contextProvider.get().getLocale());
                 if (translation != null) {
-                    parameters.setXClass(translation.getRawSource().toString());
+                    parameters.setXclass(translation.getRawSource().toString());
                 }
 
-                xclassReference = documentReferenceResolver.resolve(parameters.getXClass());
+                xclassReference = documentReferenceResolver.resolve(parameters.getXclass());
             }
 
             SpaceReference spaceReference =

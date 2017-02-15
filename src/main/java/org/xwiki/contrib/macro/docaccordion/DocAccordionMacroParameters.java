@@ -50,7 +50,7 @@ public class DocAccordionMacroParameters
     private String space;
 
     /**
-     * @see {@link #getXClass()}
+     * @see {@link #getXclass()}
      */
     private String xclass;
 
@@ -105,7 +105,7 @@ public class DocAccordionMacroParameters
     /**
      * @return the xclass parameter
      */
-    public String getXClass()
+    public String getXclass()
     {
         return this.xclass;
     }
@@ -115,7 +115,7 @@ public class DocAccordionMacroParameters
      */
     @PropertyName("Application class")
     @PropertyDescription("Limit the selection to documents containing objects instance of this XClass.")
-    public void setXClass(String xclass)
+    public void setXclass(String xclass)
     {
         this.xclass = xclass;
     }
