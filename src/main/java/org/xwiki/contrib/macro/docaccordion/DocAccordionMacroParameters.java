@@ -70,6 +70,11 @@ public class DocAccordionMacroParameters
     private boolean displayDate = true;
 
     /**
+     * @see {@link #getOpenFirstAccordion()}
+     */
+    private boolean openFirstAccordion = true;
+
+    /**
      * @see {@link #getLimit()}
      */
     private int limit = 100;
@@ -78,11 +83,6 @@ public class DocAccordionMacroParameters
      * @see {@link #getAccordionMaxHeight()}
      */
     private int accordionMaxHeight;
-
-    /**
-     * @see {@link #getOpenFirstAccordion()}
-     */
-    private boolean openFirstAccordion = true;
 
     /**
      * @return the space parameter
@@ -95,8 +95,8 @@ public class DocAccordionMacroParameters
     /**
      * @param space the space parameter
      */
-    @PropertyName("Space")
-    @PropertyDescription("Reference to a space in the current wiki.")
+    @PropertyName("Location")
+    @PropertyDescription("Limit the selection to this page and its children. If the selected page is an Application Within Minutes, display items of that application.")
     public void setSpace(String space)
     {
         this.space = space;
@@ -113,8 +113,8 @@ public class DocAccordionMacroParameters
     /**
      * @param xclass the xclass parameter
      */
-    @PropertyName("XClass")
-    @PropertyDescription("reference to a class in the current wiki. All document of that xclass will be used for this accordion.")
+    @PropertyName("Application class")
+    @PropertyDescription("Limit the selection to documents containing objects instance of this XClass.")
     public void setXClass(String xclass)
     {
         this.xclass = xclass;
@@ -131,8 +131,8 @@ public class DocAccordionMacroParameters
     /**
      * @param sort the sort parameter
      */
-    @PropertyName("Sorting")
-    @PropertyDescription("Defines how to sort the accordions, chronologically (most recent to oldest) or alphabetically (sort title from A to Z)")
+    @PropertyName("Order")
+    @PropertyDescription("Sort the available documents.")
     public void setSort(DocAccordionMacroSort sort)
     {
         this.sort = sort;
@@ -150,7 +150,7 @@ public class DocAccordionMacroParameters
      * @param displayAuthor the displayAuthor parameter
      */
     @PropertyName("Display the author")
-    @PropertyDescription("Display the document author. Displayed by default.")
+    @PropertyDescription("Display the document author.")
     public void setDisplayAuthor(boolean displayAuthor)
     {
         this.displayAuthor = displayAuthor;
@@ -168,7 +168,7 @@ public class DocAccordionMacroParameters
      * @param displayDate the displayDate parameter
      */
     @PropertyName("Display the modification date")
-    @PropertyDescription("Display the document last modification date. Displayed by default.")
+    @PropertyDescription("Display the document last modification date.")
     public void setDisplayDate(boolean displayDate)
     {
         this.displayDate = displayDate;
@@ -185,8 +185,8 @@ public class DocAccordionMacroParameters
     /**
      * @param limit the limit parameter
      */
-    @PropertyName("Number of accordions to display")
-    @PropertyDescription("Number of accordions to display. 100 accordions displayed by default.")
+    @PropertyName("Maximum number of accordions")
+    @PropertyDescription("Limit the number of accordions that could be displayed.")
     public void setLimit(int limit)
     {
         this.limit = limit;
@@ -203,8 +203,8 @@ public class DocAccordionMacroParameters
     /**
      * @param accordionMaxHeight the accordionMaxHeight parameter
      */
-    @PropertyName("The maximum height of an accordion")
-    @PropertyDescription("The max height of a given accordion block")
+    @PropertyName("Accordion height")
+    @PropertyDescription("The maximum height that an accordion use to display the document content. To avoid scrollbars use zero for an unlimited height.")
     public void setAccordionMaxHeight(int accordionMaxHeight)
     {
         this.accordionMaxHeight = accordionMaxHeight;
@@ -222,7 +222,7 @@ public class DocAccordionMacroParameters
      * @param openFirstAccordion the openFirstAccordion parameter
      */
     @PropertyName("Open the first accordion")
-    @PropertyDescription("Open the first accordion. Displayed by default.")
+    @PropertyDescription("Open the first accordion.")
     public void setOpenFirstAccordion(boolean openFirstAccordion)
     {
         this.openFirstAccordion = openFirstAccordion;
