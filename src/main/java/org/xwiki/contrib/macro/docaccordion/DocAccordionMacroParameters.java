@@ -149,7 +149,7 @@ public class DocAccordionMacroParameters
     /**
      * @param displayAuthor the displayAuthor parameter
      */
-    @PropertyName("Display the author")
+    @PropertyName("Show the author")
     @PropertyDescription("Display the document author.")
     public void setDisplayAuthor(boolean displayAuthor)
     {
@@ -167,7 +167,7 @@ public class DocAccordionMacroParameters
     /**
      * @param displayDate the displayDate parameter
      */
-    @PropertyName("Display the modification date")
+    @PropertyName("Show the modification date")
     @PropertyDescription("Display the document last modification date.")
     public void setDisplayDate(boolean displayDate)
     {
@@ -185,7 +185,7 @@ public class DocAccordionMacroParameters
     /**
      * @param limit the limit parameter
      */
-    @PropertyName("Maximum number of accordions")
+    @PropertyName("Total number of accordions")
     @PropertyDescription("Limit the number of accordions that could be displayed.")
     public void setLimit(int limit)
     {
@@ -203,7 +203,7 @@ public class DocAccordionMacroParameters
     /**
      * @param accordionMaxHeight the accordionMaxHeight parameter
      */
-    @PropertyName("Accordion height")
+    @PropertyName("Size of accordions")
     @PropertyDescription("The maximum height that an accordion use to display the document content. To avoid scrollbars use zero for an unlimited height.")
     public void setAccordionMaxHeight(int accordionMaxHeight)
     {
@@ -221,7 +221,7 @@ public class DocAccordionMacroParameters
     /**
      * @param openFirstAccordion the openFirstAccordion parameter
      */
-    @PropertyName("Open the first accordion")
+    @PropertyName("Show first accordions")
     @PropertyDescription("Open the first accordion.")
     public void setOpenFirstAccordion(boolean openFirstAccordion)
     {
