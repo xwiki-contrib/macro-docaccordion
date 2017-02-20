@@ -2,10 +2,11 @@ require(['jquery', 'bootstrap'], function($){
   function loadAccordion (accordionElement) {
     if (!accordionElement.hasClass("content-already-loaded")) {
       var accordionBody = $(".panel-body .xwiki-accordion-content", accordionElement );
-      accordionBody.addClass("spinner");
+      accordionBody.addClass("loading");
+	  accordionBody.html("&nbsp;");
       var docURL = accordionElement.parent().find("a").attr("rel");
       accordionBody.load( docURL , function(){
-        accordionBody.removeClass("spinner");
+        accordionBody.removeClass("loading");
         accordionElement.addClass("content-already-loaded");
         $(".xwiki-accordion-footer", accordionElement).show();
       });
