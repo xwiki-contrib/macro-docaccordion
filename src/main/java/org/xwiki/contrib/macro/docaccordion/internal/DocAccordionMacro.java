@@ -149,6 +149,10 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
             XWikiContext xcontext = contextProvider.get();
             XWiki xwiki = xcontext.getWiki();
 
+            // Removes control characters (char <= 32) from both ends of xclass and space parameters
+            parameters.setXclass(StringUtils.trimToNull(parameters.getXclass()));
+            parameters.setSpace(StringUtils.trimToNull(parameters.getSpace()));
+
             // Resolve the xclass and space
             DocumentReference xclassReference = null;
 
@@ -246,12 +250,22 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         StringBuilder xwql = new StringBuilder(
             String.format("FROM doc.object(%s) AS sourceObj", localSerializer.serialize(xclassReference)));
 
+        String excludeQuery = "";
+
         // Filter by space
         if (!StringUtils.isBlank(parameters.getSpace())) {
             xwql.append(" WHERE");
             xwql.append(" doc.fullName LIKE :space");
             xwql.append(" escape '!'");// Added to fix a pitfall on mysql when we have spaces with points '.'
+            excludeQuery = " AND";
         }
+
+        if (StringUtils.isBlank(excludeQuery)) {
+            excludeQuery = " WHERE";
+        }
+        excludeQuery += " doc.name NOT LIKE '%Template'";
+
+        xwql.append(excludeQuery);
 
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
