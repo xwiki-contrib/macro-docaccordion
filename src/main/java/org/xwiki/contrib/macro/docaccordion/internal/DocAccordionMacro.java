@@ -267,6 +267,8 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         xwql.append(excludeQuery);
 
+        xwql.append(" AND doc.hidden=0");
+
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
         if (DocAccordionMacroSort.ALPHA.equals(parameters.getSort())) {
