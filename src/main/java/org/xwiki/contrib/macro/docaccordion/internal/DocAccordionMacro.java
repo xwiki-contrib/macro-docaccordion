@@ -272,7 +272,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
         if (DocAccordionMacroSort.ALPHA.equals(parameters.getSort())) {
-            orderBy = " ORDER BY doc.title";
+            orderBy = " ORDER BY doc.title, doc.fullName";
         }
 
         xwql.append(orderBy);
