@@ -425,6 +425,9 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                     if (parameters.getDisplayAuthor()) {
                         author = xwiki.getUserName(localSerializer.serialize(accordionItemDoc.getAuthorReference()),
                             "$first_name $last_name", false, xcontext);
+                        if (StringUtils.isBlank(author.trim())) {
+                            author = accordionItemDoc.getAuthorReference().getName();
+                        }
                     }
 
                     String date = "";
