@@ -247,27 +247,21 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         List<String> authorizedResults = new ArrayList<>();
 
         // Generate the query
-        StringBuilder xwql = new StringBuilder(
-            String.format("FROM doc.object(%s) AS sourceObj", localSerializer.serialize(xclassReference)));
-
-        String excludeQuery = "";
+        StringBuilder hql = new StringBuilder(", BaseObject AS obj");
+        hql.append(" WHERE");
+        hql.append(" obj.name=doc.fullName AND obj.className=:xclass");
 
         // Filter by space
         if (!StringUtils.isBlank(parameters.getSpace())) {
-            xwql.append(" WHERE");
-            xwql.append(" doc.fullName LIKE :space");
-            xwql.append(" escape '!'");// Added to fix a pitfall on mysql when we have spaces with points '.'
-            excludeQuery = " AND";
+            hql.append(" AND doc.fullName LIKE :space");
+            hql.append(" escape '!'");// Added to fix a pitfall on mysql when we have spaces with points '.'
         }
 
-        if (StringUtils.isBlank(excludeQuery)) {
-            excludeQuery = " WHERE";
-        }
-        excludeQuery += " doc.name NOT LIKE '%Template'";
+        String excludeQuery = " AND doc.name NOT LIKE '%Template'";
 
-        xwql.append(excludeQuery);
+        hql.append(excludeQuery);
 
-        xwql.append(" AND doc.hidden=0");
+        hql.append(" AND doc.hidden=0");
 
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
@@ -275,9 +269,11 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
             orderBy = " ORDER BY doc.title, doc.fullName";
         }
 
-        xwql.append(orderBy);
+        hql.append(orderBy);
 
-        Query query = queryManager.createQuery(xwql.toString(), Query.XWQL);
+        Query query = queryManager.createQuery(hql.toString(), Query.HQL);
+
+        query.bindValue("xclass", localSerializer.serialize(xclassReference));
 
         if (!StringUtils.isBlank(parameters.getSpace())) {
             // Added to fix a pitfall on mysql when we have spaces with points '.'
