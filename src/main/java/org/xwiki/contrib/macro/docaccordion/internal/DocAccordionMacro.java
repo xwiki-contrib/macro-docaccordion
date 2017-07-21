@@ -261,7 +261,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         hql.append(excludeQuery);
 
-        hql.append(" AND doc.hidden='0'");
+        hql.append(" AND doc.hidden=0");
 
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
