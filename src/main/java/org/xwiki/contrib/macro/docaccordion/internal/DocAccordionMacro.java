@@ -261,7 +261,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         hql.append(excludeQuery);
 
-        hql.append(" AND doc.hidden=0");
+        hql.append(" AND doc.hidden='0'");
 
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
@@ -369,6 +369,8 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
                 // Accordion item Panel heading title link
                 Map<String, String> accordionItemPanelHeadingTitleLinkParams = new HashMap<>();
+//                if (cssClasses == "") {
+                accordionItemPanelHeadingTitleLinkParams.put("class", "collapsed");
                 accordionItemPanelHeadingTitleLinkParams.put("role", "button");
                 accordionItemPanelHeadingTitleLinkParams.put("data-toggle", "collapse");
                 accordionItemPanelHeadingTitleLinkParams.put("data-parent",
