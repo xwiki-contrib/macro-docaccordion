@@ -4,3 +4,33 @@
   font-style: italic;   
   padding-top: 5px;
 }
+/* https://jira.xwiki.org/browse/DOCACCORDI-9 */
+.xwiki-accordion-content ul {
+  list-style-type: disc;
+  padding-left: 2.5em;
+}
+/* remove the underline of link */
+.xwiki-accordion .panel-default .panel-heading h4 span .wikiinternallink a.wikimodel-freestanding:hover, .xwiki-accordion .panel-default .panel-heading h4 span .wikiinternallink a.wikimodel-freestanding:focus {
+  text-decoration: none;
+}
+.xwiki-accordion .panel-default > .panel-heading {
+    background-color: transparent;
+}
+.panel-group.xwiki-accordion {
+    margin-bottom: 0.3em;
+}
+.xwiki-accordion .panel-default .panel-collapse {
+width: 100%;
+}
+.xwiki-accordion .panel-default .panel-heading h4 span .wikiinternallink a.wikimodel-freestanding:after {
+  content: "\f106";
+  float: right;
+  font-family: "fontawesome";
+  }
+/* Icon when collapsed */
+.xwiki-accordion .panel-default .panel-heading h4 span .wikiinternallink a.wikimodel-freestanding.collapsed:after {
+  content: "\f107";
+  font-family: "fontawesome";
+ }
+
+
