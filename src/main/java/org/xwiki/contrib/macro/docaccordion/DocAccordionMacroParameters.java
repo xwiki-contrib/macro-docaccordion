@@ -39,9 +39,14 @@ public class DocAccordionMacroParameters
         CHRONO,
 
         /**
-         * Accordions sorted alphabetically.
+         * Accordions sorted alphabetically by document title.
          */
-        ALPHA
+        ALPHA,
+
+        /**
+         * Accordions sorted alphabetically by document name.
+         */
+        ALPHA_DOCNAME
     }
 
     /**

@@ -276,6 +276,8 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         String orderBy = " ORDER BY doc.date DESC";
         if (DocAccordionMacroSort.ALPHA.equals(parameters.getSort())) {
             orderBy = " ORDER BY doc.title, doc.fullName";
+        } else if (DocAccordionMacroSort.ALPHA_DOCNAME.equals(parameters.getSort())) {
+            orderBy = " ORDER BY doc.name";
         }
 
         hql.append(orderBy);
