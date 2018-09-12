@@ -175,24 +175,24 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
                 xclassReference = getSpaceAWMDataXClass(spaceReference);
                 // Starting from xwiki 8.4.4 AWP data can be added on multiple spaces, to cover this case we will not
                 // filter results by space in the case of AWM documents
-                parameters.setSpace("");
+                if (xclassReference != null) {
+                    parameters.setSpace("");
+                }
             }
 
-            if (xclassReference != null) {
-                try {
-                    List<String> accordionsStringReferences =
-                        getAccordions(spaceReference, xclassReference, parameters);
-                    result = generateAccordionBlocks(accordionsStringReferences, parameters, transformationContext);
-                } catch (Exception e) {
-                    throw new MacroExecutionException(String.format(
-                        "An error appears when trying to get accordions for the parameters [space: %s, xclass: %s, sort: %s, limit: %s], reason: %s",
-                        parameters.getSpace(), xclassReference, parameters.getSort(), parameters.getLimit(),
-                        e.getMessage()));
-                }
-            } else {
+            if (xclassReference == null && StringUtils.isBlank(parameters.getSpace())) {
                 throw new MacroExecutionException(localization
                     .getTranslation("rendering.macro.docaccordion.wrong_parameters", contextProvider.get().getLocale())
                     .getRawSource().toString());
+            }
+            try {
+                List<String> accordionsStringReferences = getAccordions(spaceReference, xclassReference, parameters);
+                result = generateAccordionBlocks(accordionsStringReferences, parameters, transformationContext);
+            } catch (Exception e) {
+                throw new MacroExecutionException(String.format(
+                    "An error appears when trying to get accordions for the parameters [space: %s, xclass: %s, sort: %s, limit: %s], reason: %s",
+                    parameters.getSpace(), xclassReference, parameters.getSort(), parameters.getLimit(),
+                    e.getMessage()));
             }
 
         } catch (XWikiException xe) {
@@ -246,22 +246,31 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
     {
         List<String> authorizedResults = new ArrayList<>();
 
+        if (xclassReference == null && StringUtils.isBlank(parameters.getSpace())) {
+            return authorizedResults;
+        }
+
         // Generate the query
-        StringBuilder hql = new StringBuilder(", BaseObject AS obj");
-        hql.append(" WHERE");
-        hql.append(" obj.name=doc.fullName AND obj.className=:xclass");
+        StringBuilder hql = new StringBuilder("");
+        hql.append(xclassReference != null ? ", BaseObject AS obj " : "");
+        hql.append("WHERE");
+        if (xclassReference != null) {
+            hql.append(" obj.name=doc.fullName AND obj.className=:xclass");
+        }
 
         // Filter by space
         if (!StringUtils.isBlank(parameters.getSpace())) {
-            hql.append(" AND doc.fullName LIKE :space");
-            hql.append(" escape '!'");// Added to fix a pitfall on mysql when we have spaces with points '.'
+            hql.append(String.format(" %s %s", xclassReference != null ? "AND" : "",
+                (xclassReference == null && parameters.getShowSpaceTopLevelDocs()) ? "doc.space=:space1"
+                    : "doc.fullName LIKE :space2 escape '!'"));
         }
 
-        String excludeQuery = " AND doc.name NOT LIKE '%Template'";
-
+        // Exclude class templates, WebPreferences and hidden pages
+        String excludeQuery = xclassReference != null ? " AND doc.name NOT LIKE '%Template'" : "";
+        excludeQuery = excludeQuery + " AND doc.name <> 'WebPreferences' AND doc.hidden=0";
+        excludeQuery = excludeQuery + ((xclassReference == null && parameters.getIgnoreSpaceWebHomePage())
+            ? " AND doc.fullName<>:webHome" : "");
         hql.append(excludeQuery);
-
-        hql.append(" AND doc.hidden=0");
 
         // Sort results
         String orderBy = " ORDER BY doc.date DESC";
@@ -273,12 +282,21 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
 
         Query query = queryManager.createQuery(hql.toString(), Query.HQL);
 
-        query.bindValue("xclass", localSerializer.serialize(xclassReference));
+        if (xclassReference != null) {
+            query.bindValue("xclass", localSerializer.serialize(xclassReference));
+        }
 
         if (!StringUtils.isBlank(parameters.getSpace())) {
-            // Added to fix a pitfall on mysql when we have spaces with points '.'
-            String spaceLike = localSerializer.serialize(spaceReference).replaceAll("([%_!])", "!$1").concat(".%");
-            query.bindValue("space", spaceLike);
+            if (xclassReference == null && parameters.getShowSpaceTopLevelDocs()) {
+                query.bindValue("space1", localSerializer.serialize(spaceReference));
+            } else {
+                // Added to fix a pitfall on mysql when we have spaces with points '.'
+                String spaceLike = localSerializer.serialize(spaceReference).replaceAll("([%_!])", "!$1").concat(".%");
+                query.bindValue("space2", spaceLike);
+            }
+            if (xclassReference == null && parameters.getIgnoreSpaceWebHomePage()) {
+                query.bindValue("webHome", String.format("%s.WebHome", localSerializer.serialize(spaceReference)));
+            }
         }
 
         // Manage the limit parameter

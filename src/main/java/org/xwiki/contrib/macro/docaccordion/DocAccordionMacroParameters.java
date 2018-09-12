@@ -85,6 +85,16 @@ public class DocAccordionMacroParameters
     private int accordionMaxHeight;
 
     /**
+     * @see {@link #getShowSpaceTopLevelDocs()}
+     */
+    private boolean showSpaceTopLevelDocs = true;
+
+    /**
+     * @see {@link #getIgnoreSpaceWebHomePage()}
+     */
+    private boolean ignoreSpaceWebHomePage = true;
+
+    /**
      * @return the space parameter
      */
     public String getSpace()
@@ -226,5 +236,41 @@ public class DocAccordionMacroParameters
     public void setOpenFirstAccordion(boolean openFirstAccordion)
     {
         this.openFirstAccordion = openFirstAccordion;
+    }
+
+    /**
+     * @return the showTopLevelDocs parameter
+     */
+    public boolean getShowSpaceTopLevelDocs()
+    {
+        return this.showSpaceTopLevelDocs;
+    }
+
+    /**
+     * @param showTopLevelDocs the showTopLevelDocs parameter
+     */
+    @PropertyName("Show top level documents")
+    @PropertyDescription("Only directl children of the space will be listed.")
+    public void setShowSpaceTopLevelDocs(boolean showSpaceTopLevelDocs)
+    {
+        this.showSpaceTopLevelDocs = showSpaceTopLevelDocs;
+    }
+
+    /**
+     * @return the ignoreSpaceWebHomePage parameter
+     */
+    public boolean getIgnoreSpaceWebHomePage()
+    {
+        return this.ignoreSpaceWebHomePage;
+    }
+
+    /**
+     * @param ignoreWebHomePage the ignoreWebHomePage parameter
+     */
+    @PropertyName("Ignore '.WebHome' documents")
+    @PropertyDescription("Ignore the '.WebHome' page of the space when listing a space documents.")
+    public void setIgnoreSpaceWebHomePage(boolean ignoreSpaceWebHomePage)
+    {
+        this.ignoreSpaceWebHomePage = ignoreSpaceWebHomePage;
     }
 }
