@@ -46,7 +46,12 @@ public class DocAccordionMacroParameters
         /**
          * Accordions sorted alphabetically by document name.
          */
-        ALPHA_DOCNAME
+        ALPHA_DOCNAME,
+
+        /**
+         * Accordions sorted alphabetically by document fullName.
+         */
+        ALPHA_DOCFULLNAME
     }
 
     /**
