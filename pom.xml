@@ -31,7 +31,7 @@
   </parent>
   <groupId>org.xwiki.contrib</groupId>
   <artifactId>macro-docaccordion</artifactId>
-  <version>1.1</version>  
+  <version>1.2-SNAPSHOT</version>  
   <name>Document Accordion Macro</name>
   <description>Rendering macro for displaying multiple documents as an accordion</description>
     <properties>
@@ -42,7 +42,7 @@
     <connection>scm:git:git://github.com/xwiki-contrib/macro-docaccordion.git</connection>
     <developerConnection>scm:git:git@github.com:xwiki-contrib/macro-docaccordion.git</developerConnection>
     <url>https://github.com/xwiki-contrib/macro-docaccordion</url>
-    <tag>macro-docaccordion-1.1</tag>
+    <tag>HEAD</tag>
   </scm>
   <issueManagement>
     <system>jira</system>
