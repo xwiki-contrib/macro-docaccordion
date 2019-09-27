@@ -4,3 +4,8 @@
   font-style: italic;   
   padding-top: 5px;
 }
+/* The only element affected by the "panel" class is "ul" and we need to reset the style applied and keep the included
+   content as it is. */
+.xwiki-accordion-content ul {
+  all: revert;
+}
