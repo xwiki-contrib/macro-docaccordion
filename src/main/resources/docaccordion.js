@@ -18,7 +18,15 @@ require(['jquery', 'bootstrap'], function($){
     loadAccordion($(this));
   });
 
+  $('.xwiki-accordion .collapse').on('hide.bs.collapse', function () {
+    var panel = $(this);
+    var scrollTop = Math.max( $("html").scrollTop(), $("body").scrollTop());
+    if (scrollTop > panel.offset().top) {
+      $('html, body').scrollTop(panel.offset().top);
+    }
+    panel.collapse({toggle: true});
+  });
+
   // Load the first accordions
   $(".panel-heading.openFirstAccordion a").click();
-
 });
