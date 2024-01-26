@@ -20,11 +20,7 @@
 package org.xwiki.contrib.macro.docaccordion;
 
 import org.xwiki.properties.annotation.PropertyDescription;
-import org.xwiki.properties.annotation.PropertyMandatory;
 import org.xwiki.properties.annotation.PropertyName;
-
-import org.xwiki.model.reference.LocalDocumentReference;
-import org.xwiki.model.reference.SpaceReference;
 
 /**
  * Parameters for the {@link org.xwiki.contrib.macro.docaccordion.internal.DocAccordionMacro} Macro.
@@ -55,52 +51,52 @@ public class DocAccordionMacroParameters
     }
 
     /**
-     * @see {@link #getSpace()}
+     * @see #getSpace()
      */
     private String space;
 
     /**
-     * @see {@link #getXclass()}
+     * @see #getXclass()
      */
     private String xclass;
 
     /**
-     * @see {@link #getSort()}
+     * @see #getSort()
      */
     private DocAccordionMacroSort sort = DocAccordionMacroSort.CHRONO;
 
     /**
-     * @see {@link #getDisplayAuthor()}
+     * @see #getDisplayAuthor()
      */
     private boolean displayAuthor = true;
 
     /**
-     * @see {@link #getDisplayDate()}
+     * @see #getDisplayDate()
      */
     private boolean displayDate = true;
 
     /**
-     * @see {@link #getOpenFirstAccordion()}
+     * @see #getOpenFirstAccordion()
      */
     private boolean openFirstAccordion = true;
 
     /**
-     * @see {@link #getLimit()}
+     * @see #getLimit()
      */
     private int limit = 100;
 
     /**
-     * @see {@link #getAccordionMaxHeight()}
+     * @see #getAccordionMaxHeight()
      */
     private int accordionMaxHeight;
 
     /**
-     * @see {@link #getShowSpaceTopLevelDocs()}
+     * @see #getShowSpaceTopLevelDocs()
      */
     private boolean showSpaceTopLevelDocs = true;
 
     /**
-     * @see {@link #getIgnoreSpaceWebHomePage()}
+     * @see #getIgnoreSpaceWebHomePage()
      */
     private boolean ignoreSpaceWebHomePage = true;
 
@@ -257,7 +253,7 @@ public class DocAccordionMacroParameters
     }
 
     /**
-     * @param showTopLevelDocs the showTopLevelDocs parameter
+     * @param showSpaceTopLevelDocs the showSpaceTopLevelDocs parameter
      */
     @PropertyName("Show top level documents")
     @PropertyDescription("Only directl children of the space will be listed.")
@@ -275,7 +271,7 @@ public class DocAccordionMacroParameters
     }
 
     /**
-     * @param ignoreWebHomePage the ignoreWebHomePage parameter
+     * @param ignoreSpaceWebHomePage the ignoreSpaceWebHomePage parameter
      */
     @PropertyName("Ignore '.WebHome' documents")
     @PropertyDescription("Ignore the '.WebHome' page of the space when listing a space documents.")

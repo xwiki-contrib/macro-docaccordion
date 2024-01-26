@@ -19,49 +19,38 @@
  */
 package org.xwiki.contrib.macro.docaccordion.internal;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Provider;
 
-import java.util.List;
-import java.util.Locale;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.ArrayList;
-import java.util.Arrays;
-
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang.RandomStringUtils;
-
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
-import com.xpn.xwiki.XWiki;
-import com.xpn.xwiki.XWikiContext;
-import com.xpn.xwiki.XWikiException;
-import com.xpn.xwiki.doc.XWikiDocument;
-import com.xpn.xwiki.objects.BaseObject;
-import org.xwiki.skinx.SkinExtension;
+import org.xwiki.component.annotation.Component;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters;
 import org.xwiki.contrib.macro.docaccordion.DocAccordionMacroParameters.DocAccordionMacroSort;
-import org.xwiki.component.annotation.Component;
 import org.xwiki.localization.LocalizationManager;
 import org.xwiki.localization.Translation;
 import org.xwiki.model.EntityType;
 import org.xwiki.model.reference.DocumentReference;
 import org.xwiki.model.reference.DocumentReferenceResolver;
 import org.xwiki.model.reference.EntityReferenceResolver;
-import org.xwiki.model.reference.EntityReference;
 import org.xwiki.model.reference.EntityReferenceSerializer;
-import org.xwiki.model.reference.LocalDocumentReference;
 import org.xwiki.model.reference.SpaceReference;
 import org.xwiki.query.Query;
-import org.xwiki.query.QueryException;
 import org.xwiki.query.QueryManager;
 import org.xwiki.rendering.block.Block;
+import org.xwiki.rendering.block.GroupBlock;
 import org.xwiki.rendering.block.HeaderBlock;
 import org.xwiki.rendering.block.LinkBlock;
 import org.xwiki.rendering.block.WordBlock;
-import org.xwiki.rendering.block.ParagraphBlock;
-import org.xwiki.rendering.block.GroupBlock;
 import org.xwiki.rendering.listener.HeaderLevel;
 import org.xwiki.rendering.listener.reference.ResourceReference;
 import org.xwiki.rendering.listener.reference.ResourceType;
@@ -70,6 +59,13 @@ import org.xwiki.rendering.macro.MacroExecutionException;
 import org.xwiki.rendering.transformation.MacroTransformationContext;
 import org.xwiki.security.authorization.ContextualAuthorizationManager;
 import org.xwiki.security.authorization.Right;
+import org.xwiki.skinx.SkinExtension;
+
+import com.xpn.xwiki.XWiki;
+import com.xpn.xwiki.XWikiContext;
+import com.xpn.xwiki.XWikiException;
+import com.xpn.xwiki.doc.XWikiDocument;
+import com.xpn.xwiki.objects.BaseObject;
 
 /**
  * DocAccordion Macro.
@@ -134,15 +130,11 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         super("DocAccordion", DESCRIPTION, DocAccordionMacroParameters.class);
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.rendering.macro.Macro#execute(Object, String, MacroTransformationContext)
-     */
+    @Override
     public List<Block> execute(DocAccordionMacroParameters parameters, String content,
         MacroTransformationContext transformationContext) throws MacroExecutionException
     {
-        List<Block> result = new ArrayList<Block>();
+        List<Block> result = new ArrayList<>();
 
         try {
 
@@ -206,11 +198,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
         return result;
     }
 
-    /**
-     * {@inheritDoc}
-     * 
-     * @see org.xwiki.rendering.macro.Macro#supportsInlineMode()
-     */
+    @Override
     public boolean supportsInlineMode()
     {
         return false;
