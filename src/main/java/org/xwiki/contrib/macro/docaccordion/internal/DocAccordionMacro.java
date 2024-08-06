@@ -99,6 +99,7 @@ public class DocAccordionMacro extends AbstractMacro<DocAccordionMacroParameters
     private Provider<XWikiContext> contextProvider;
 
     @Inject
+    @Named("current")
     private DocumentReferenceResolver<String> documentReferenceResolver;
 
     @Inject
